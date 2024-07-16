@@ -1,0 +1,30 @@
+{
+	"name": "portf",
+	"version": "0.0.1",
+	"private": true,
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"preview": "vite preview",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
+		"lint": "prettier --check .",
+		"format": "prettier --write ."
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-auto": "^3.2.2",
+		"@sveltejs/kit": "^2.5.18",
+		"@sveltejs/vite-plugin-svelte": "^3.1.1",
+		"prettier": "^3.3.2",
+		"prettier-plugin-svelte": "^3.2.5",
+		"svelte": "^4.2.18",
+		"svelte-check": "^3.8.4",
+		"typescript": "^5.5.3",
+		"vite": "^5.3.3"
+	},
+	"type": "module",
+	"dependencies": {
+		"@sveltejs/enhanced-img": "^0.3.0",
+		"shifty": "^3.0.3"
+	}
+}
