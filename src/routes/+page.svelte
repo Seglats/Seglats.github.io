@@ -34,14 +34,18 @@
 
 <div>
 	<div class="section">
-		<img src="/img/red_forrest.png" alt="redForrest" class="image" />
-		<div class="text-overlay">
-			<header class="montserrat-classic title">Rasmus Tengstedt</header>
-			<h2 style="margin-top:.05rem;" class="montserrat-classic subtitle">22 year old dev</h2>
+		<div class="section-1">
+			<img srcset="/img/SailBoat-480.avif 480w, /img/SailBoat-720.avif 720w, /img/SailBoat-1080.avif 1080w, /img/SailBoat.avif 2000w" 
+			sizes="(max-width: 1000px) 480px, (max-width: 1400px) 720px, (max-width: 2300px)  1080px, 2000px"
+			src="/img/Sail_Boat.avif" alt="SailingBoat" class="image" />
+			<div class="text-overlay">
+				<header class="montserrat-classic title">Rasmus Tengstedt</header>
+				<h2 style="margin-top:.05rem;" class="montserrat-classic subtitle">22 year old dev</h2>
+			</div>
 		</div>
 	</div>
 
-	<div style="margin:0 12vw;">
+	<!-- <div style="margin:0 12vw;">
 		<div style="border-top: 8px solid #c02335; border-radius: 5px; "></div>
 		<div style="margin:4rem 3rem 0 3rem;">
 			<h1 class="montserrat-classic" style="color:#cdcdcd;  font-size:4rem; ">About Me!</h1>
@@ -62,11 +66,7 @@
 		<div style="border-top: 8px solid #c02335; border-radius: 5px; "></div>
 		<div style="margin:2rem 3rem 0 3rem;">
 			<h1 class="montserrat-classic" style="color:#cdcdcd;  font-size:4rem; ">Education</h1>
-			<img
-				src="/img/ltu-img.jpg"
-				alt="school_image"
-				style="width:96%; border-radius:2rem; margin-left:2%;"
-			/>
+			<img src="/img/ltu-img.jpg" alt="school_image" style="border-radius:2rem; width:100% " />
 			<div style="margin-top:1rem;">
 				<p class="montserrat-classic" style="font-size:1.3rem; color:#cdcdcd; margin:0 0.3rem;">
 					I graduated from high school in 2020 and commenced my studies at LTU the same year.
@@ -122,10 +122,14 @@
 </div>
 <div style="margin:-8rem 12vw;">
 	<div style="border-top: 8px solid #c02335; border-radius: 5px; "></div>
-		<div class="montserrat-classic" style="text-align: center; font-size:1.3rem; color:#cdcdcd; margin-top:2rem;">&copy; Rasmus@luftig.se</div>
-	<div style="height: 5rem"></div>
+	<div
+		class="montserrat-classic"
+		style="text-align: center; font-size:1.3rem; color:#cdcdcd; margin-top:2rem;"
+	>
+		&copy; Rasmus@luftig.se
+	</div>
+	<div style="height: 5rem"></div> -->
 </div>
-
 
 <style>
 	.section {
@@ -136,9 +140,16 @@
 		align-items: center;
 		position: relative;
 	}
+	.section-1 {
+		width: 80%;
+		height: 75vh;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		position: relative;
+	}
 	.image {
-		width: 75%;
-		height: 80%;
+		
 		border-radius: 2rem;
 	}
 	.text-overlay {
