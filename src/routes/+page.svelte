@@ -2,9 +2,6 @@
 	import { onMount } from 'svelte';
 	import { browser } from '$app/environment';
 
-	import pkg from 'shifty';
-	const { tween } = pkg;
-
 	const images = [
 		{ name: 'natt', alt: 'Night photo' },
 		{ name: 'brygga', alt: 'Dock photo' },
@@ -16,19 +13,66 @@
 		{ name: 'landskap', alt: 'Landscape photo' },
 		{ name: 'fogel', alt: 'Bird photo' }
 	];
+
+	/** @type {Record<string, boolean>} */
+	let loaded = {};
+
+	/** @param {string} name */
+	function getFullSrc(name) {
+		const w = browser ? window.innerWidth : 2000;
+		if (w <= 600) return `/img/${name}-720.avif`;
+		if (w <= 1000) return `/img/${name}-1080.avif`;
+		if (w <= 1400) return `/img/${name}-2000.avif`;
+		return `/img/${name}-3840.avif`;
+	}
+
+	/** @param {string} name */
+	function loadFullImage(name) {
+		if (!browser) return;
+		const img = new Image();
+		img.onload = () => {
+			console.log('Loaded full image:', name, getFullSrc(name));
+			loaded = { ...loaded, [name]: true };
+			console.log('loaded state:', loaded);
+		};
+		img.onerror = (e) => {
+			console.error('Failed to load:', name, getFullSrc(name), e);
+		};
+		img.src = getFullSrc(name);
+	}
+
+	onMount(() => {
+		loadFullImage(images[0].name);
+		// lazy load gallery images with IntersectionObserver
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						const name = /** @type {HTMLElement} */ (entry.target).dataset.name;
+						if (name) loadFullImage(name);
+						observer.unobserve(entry.target);
+					}
+				});
+			},
+			{ rootMargin: '200px' }
+		);
+
+		document.querySelectorAll('.gallery-item').forEach((el) => {
+			observer.observe(el);
+		});
+	});
 </script>
 
 <div>
 	<div class="section first-section">
 		<div class="section-1">
 			<img
-				srcset="/img/{images[0].name}-480.avif 480w, /img/{images[0]
-					.name}-720.avif 720w, /img/{images[0].name}-1080.avif 1080w, /img/{images[0]
-					.name}-2000.avif 2000w, /img/{images[0].name}-3840.avif 3840w"
-				sizes="(max-width: 600px) 480px, (max-width: 1000px) 720px, (max-width: 1400px) 1080px, (max-width: 2500px) 2000px, 3840px"
-				src="/img/{images[0].name}-2000.avif"
+				src={loaded[images[0].name]
+					? getFullSrc(images[0].name)
+					: `/img/${images[0].name}-480.avif`}
 				alt={images[0].alt}
 				class="image"
+				class:blurred={!loaded[images[0].name]}
 			/>
 			<div class="text-overlay">
 				<header class="montserrat-classic title">Rasmus Tengstedt</header>
@@ -44,14 +88,12 @@
 
 	<div class="gallery-container">
 		{#each images.slice(1) as image}
-			<div class="gallery-item">
+			<div class="gallery-item" data-name={image.name}>
 				<img
-					srcset="/img/{image.name}-480.avif 480w, /img/{image.name}-720.avif 720w, /img/{image.name}-1080.avif 1080w, /img/{image.name}-2000.avif 2000w, /img/{image.name}-3840.avif 3840w"
-					sizes="(max-width: 600px) 480px, (max-width: 1000px) 720px, (max-width: 3840px) 1080px, (max-width: 2500px) 2000px, 3840px"
-					src="/img/{image.name}-2000.avif"
+					src={loaded[image.name] ? getFullSrc(image.name) : `/img/${image.name}-480.avif`}
 					alt={image.alt}
 					class="gallery-image"
-					loading="lazy"
+					class:blurred={!loaded[image.name]}
 				/>
 			</div>
 		{/each}
@@ -88,6 +130,21 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
+		transition: filter 0.4s ease;
+	}
+
+	.gallery-image {
+		width: 100%;
+		height: auto;
+		min-height: 60vh;
+		object-fit: cover;
+		border-radius: 2rem;
+		transition: filter 0.4s ease;
+	}
+
+	.blurred {
+		filter: blur(20px);
+		transform: scale(1.02);
 	}
 
 	.text-overlay {
@@ -141,14 +198,6 @@
 		max-width: 3840px;
 	}
 
-	.gallery-image {
-		width: 100%;
-		height: auto;
-		min-height: 60vh;
-		object-fit: cover;
-		border-radius: 2rem;
-	}
-
 	@media (max-width: 768px) {
 		.text-overlay {
 			left: 50%;
@@ -164,24 +213,9 @@
 			margin-top: 0.5rem;
 		}
 
-		.section-1 {
-			width: 90%;
-			max-width: 3840px;
-			height: 75vh;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			position: relative;
-		}
-
 		.todo-message {
 			padding: 0.75rem 1.5rem;
 			max-width: 90%;
-		}
-
-		.gallery-item {
-			width: 90%;
-			max-width: 3840px;
 		}
 
 		.gallery-image {
