@@ -14,42 +14,71 @@
 		{ name: 'fogel', alt: 'Bird photo' }
 	];
 
-	/** @type {Record<string, boolean>} */
-	let loaded = {};
+	// Quality levels in order from lowest to highest
+	const qualityLevels = [480, 720, 1080, 2000, 3840];
 
-	/** @param {string} name */
-	function getFullSrc(name) {
-		const w = browser ? window.innerWidth : 2000;
-		if (w <= 600) return `/img/${name}-720.avif`;
-		if (w <= 1000) return `/img/${name}-1080.avif`;
-		if (w <= 1400) return `/img/${name}-2000.avif`;
-		return `/img/${name}-3840.avif`;
+	/** @type {Record<string, number>} - tracks the highest loaded quality index for each image */
+	let loadedQuality = {};
+
+	/** Get the target quality level based on screen width */
+	function getTargetQualityIndex() {
+		if (!browser) return 4; // default to highest
+		const w = window.innerWidth;
+		if (w <= 600) return 1;  // 720
+		if (w <= 1000) return 2; // 1080
+		if (w <= 1400) return 3; // 2000
+		return 4; // 3840
 	}
 
-	/** @param {string} name */
-	function loadFullImage(name) {
+	// Reactive statements to ensure Svelte tracks loadedQuality changes
+	$: imageSources = images.reduce((/** @type {Record<string, string>} */ acc, img) => {
+		const qualityIndex = loadedQuality[img.name] ?? 0;
+		acc[img.name] = `/img/${img.name}-${qualityLevels[qualityIndex]}.avif`;
+		return acc;
+	}, {});
+
+	$: fullyLoaded = images.reduce((/** @type {Record<string, boolean>} */ acc, img) => {
+		acc[img.name] = (loadedQuality[img.name] ?? 0) >= getTargetQualityIndex();
+		return acc;
+	}, {});
+
+	/**
+	 * Progressively load image through quality levels
+	 * @param {string} name
+	 */
+	function loadImageProgressively(name) {
 		if (!browser) return;
+
+		const targetIndex = getTargetQualityIndex();
+		const currentIndex = loadedQuality[name] ?? 0;
+
+		// If we've reached target quality, stop
+		if (currentIndex >= targetIndex) return;
+
+		const nextIndex = currentIndex + 1;
+		const nextSrc = `/img/${name}-${qualityLevels[nextIndex]}.avif`;
+
 		const img = new Image();
 		img.onload = () => {
-			console.log('Loaded full image:', name, getFullSrc(name));
-			loaded = { ...loaded, [name]: true };
-			console.log('loaded state:', loaded);
+			loadedQuality = { ...loadedQuality, [name]: nextIndex };
+			// Continue loading next quality level
+			loadImageProgressively(name);
 		};
 		img.onerror = (e) => {
-			console.error('Failed to load:', name, getFullSrc(name), e);
+			console.error('Failed to load:', name, nextSrc, e);
 		};
-		img.src = getFullSrc(name);
+		img.src = nextSrc;
 	}
 
 	onMount(() => {
-		loadFullImage(images[0].name);
+		loadImageProgressively(images[0].name);
 		// lazy load gallery images with IntersectionObserver
 		const observer = new IntersectionObserver(
 			(entries) => {
 				entries.forEach((entry) => {
 					if (entry.isIntersecting) {
 						const name = /** @type {HTMLElement} */ (entry.target).dataset.name;
-						if (name) loadFullImage(name);
+						if (name) loadImageProgressively(name);
 						observer.unobserve(entry.target);
 					}
 				});
@@ -67,12 +96,10 @@
 	<div class="section first-section">
 		<div class="section-1">
 			<img
-				src={loaded[images[0].name]
-					? getFullSrc(images[0].name)
-					: `/img/${images[0].name}-480.avif`}
+				src={imageSources[images[0].name]}
 				alt={images[0].alt}
 				class="image"
-				class:blurred={!loaded[images[0].name]}
+				class:blurred={!fullyLoaded[images[0].name]}
 			/>
 			<div class="text-overlay">
 				<header class="montserrat-classic title">Rasmus Tengstedt</header>
@@ -90,10 +117,10 @@
 		{#each images.slice(1) as image}
 			<div class="gallery-item" data-name={image.name}>
 				<img
-					src={loaded[image.name] ? getFullSrc(image.name) : `/img/${image.name}-480.avif`}
+					src={imageSources[image.name]}
 					alt={image.alt}
 					class="gallery-image"
-					class:blurred={!loaded[image.name]}
+					class:blurred={!fullyLoaded[image.name]}
 				/>
 			</div>
 		{/each}
